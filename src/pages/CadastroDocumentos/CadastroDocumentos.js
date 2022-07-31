@@ -1,5 +1,7 @@
 import './index.css'
 import { useState } from 'react';
+import { storage } from '../../firebase';
+import { ref, uploadBytes, listAll, getDownloadURL } from 'firebase/storage';
 
 
 function CadastroDocumentos() {
@@ -9,20 +11,10 @@ function CadastroDocumentos() {
   const [title, setTitle] = useState();
   const [process, setProcess] = useState("processo1");
   const [category, setCategory] = useState();
-  const [file, setFile] = useState('testFile');
+  const [file, setFile] = useState(null);
+  const [fileList, setFileList] = useState ([]);
+  const fileListRef = ref(storage, 'uploaddocuments/');
 
-  const handleSubmit = async () => {
-    setValues()
-    console.log(formValues)
-    const requestOptions = {
-      method: 'POST',
-      body: JSON.stringify(formValues)
-    };
-
-
-    const info = await fetch('https://localhost:7170/Documento', requestOptions)
-    console.log('resp', info.status)
-  };
 
   const setValues = () => {
     setFormValues({
@@ -34,26 +26,23 @@ function CadastroDocumentos() {
     })
   }
 
-  const uploadImage = async (e)=>{
-    const file=e.target.files[0]
-    const base64= await convertBase64(file)
-    setBaseImage(base64);
-  };
+  const handleSubmit = async () => {
+    if (file == null) return
+    const fileRef = ref(storage, `uploaddocuments/${file.name}`)
+    uploadBytes(fileRef, file).then(() => {
+      alert('ok!')
+    })
 
-  const convertBase64=(file)=>{
-    return new Promise((resolve,reject)=>{
-      const fileReader=new FileReader();
-      fileReader.readAsDataURL(file);
+    setValues()
+    const requestOptions = {
+       method: 'POST',
+     body: JSON.stringify(formValues)
+     };
 
-      fileReader.onload = () =>{
-        resolve(fileReader.result);
-      };
 
-      fileReader.onerror((error) => {
-        reject(error);
-      });
-    });
-  };
+    const info = await fetch('https://localhost:7020/Documento', requestOptions)
+    console.log('resp', info.status)
+  }
 
 
   return (
@@ -69,7 +58,7 @@ function CadastroDocumentos() {
       </select>
 
       <input type="text" name="category" placeholder="Categoria" onChange={(e) => setCategory(e.target.value)} />
-      <input type="file" accept=".pdf, .doc, .docx, .xls, .xlsx" onChange={(e) => uploadImage(e)}/>
+      <input type="file" accept=".pdf, .doc, .docx, .xls, .xlsx" onChange={(e) => setFile(e.target.files[0])}/>
 
 
       <button type="submit" onClick={handleSubmit}>Enviar</button>

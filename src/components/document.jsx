@@ -1,7 +1,11 @@
 import "./document.css"
 import { AiOutlineFile } from 'react-icons/ai'
+import  React, { useState, useEffect } from "react";
+import firebase from "../firebase";
 
 const Documento = ({ list }) => {
+const [fileURL, setFileURL] = useState();
+
 
     return (
         list.map((item, index) => (
